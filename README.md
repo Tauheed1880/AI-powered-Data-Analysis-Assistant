@@ -17,7 +17,7 @@ project/
 │   ├── analysis.py         # Loads data, calculates stats, answers questions
 │   ├── visualization.py    # Draws the charts
 │   └── Dockerfile          # For deploying the backend to Hugging Face
-├── notebook.ipynb          # Same steps, explained cell by cell
+├── notebook.ipynb          # Steps explained cell by cell
 ├── dataset.csv              # Sample dataset (Superstore sales data)
 ├── requirements.txt
 ├── charts/                  # Generated chart images are saved here
