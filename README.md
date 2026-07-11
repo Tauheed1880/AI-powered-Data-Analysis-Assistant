@@ -19,7 +19,7 @@ project/
 │   └── Dockerfile          # For deploying the backend to Hugging Face
 ├── notebook.ipynb          # Steps explained cell by cell
 ├── dataset.csv              # Sample dataset (Superstore sales data)
-├── requirements.txt
+├── requirements.txt         # All required libraries
 ├── charts/                  # Generated chart images are saved here
 └── README.md
 ```
