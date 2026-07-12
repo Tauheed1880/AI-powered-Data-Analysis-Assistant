@@ -15,7 +15,7 @@ import requests
 st.set_page_config(page_title="AI Data Analysis Assistant", page_icon="📊")
 
 # Change this to your deployed backend URL when you deploy to Hugging Face
-BACKEND_URL = "http://localhost:8000"
+BACKEND_URL = "https://tauheed1880-fastapi-backend.hf.space"
 
 st.title("AI Data Analysis Assistant")
 st.write("Upload a CSV file to get a summary, ask questions, see a chart, and get an explanation.")
