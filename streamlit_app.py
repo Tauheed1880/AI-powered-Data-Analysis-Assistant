@@ -1,82 +1,186 @@
 """
 streamlit_app.py
 
-Simple frontend for the AI Data Analysis Assistant.
-This app talks to the FastAPI backend (main.py) over HTTP.
-
-To run this file (after starting the backend):
-    streamlit run streamlit_app.py
+Frontend for the AI Data Analysis Assistant.
 """
 
 import streamlit as st
 import pandas as pd
 import requests
 
-st.set_page_config(page_title="AI Data Analysis Assistant", page_icon="📊")
+st.set_page_config(
+    page_title="AI Data Analysis Assistant",
+    page_icon="📊"
+)
 
-# Change this to your deployed backend URL when you deploy to Hugging Face
+# Your deployed FastAPI backend
 BACKEND_URL = "https://tauheed1880-fastapi-backend.hf.space"
 
-st.title("AI Data Analysis Assistant")
-st.write("Upload a CSV file to get a summary, ask questions, see a chart, and get an explanation.")
+st.title("📊 AI Data Analysis Assistant")
 
-uploaded_file = st.file_uploader("Upload your CSV dataset", type=["csv"])
+st.write(
+    "Upload a CSV file, ask a question, generate a chart, and view an explanation."
+)
+
+uploaded_file = st.file_uploader(
+    "Upload your CSV dataset",
+    type=["csv"]
+)
 
 if uploaded_file is not None:
 
-    # --- Step 1: Upload the file to the backend and show the summary ---
-    files = {"file": (uploaded_file.name, uploaded_file.getvalue(), "text/csv")}
-    response = requests.post(f"{BACKEND_URL}/upload", files=files)
-    summary = response.json()
+    # -------------------------
+    # Upload CSV
+    # -------------------------
 
-    st.header("1Dataset Summary")
+    files = {
+        "file": (
+            uploaded_file.name,
+            uploaded_file.getvalue(),
+            "text/csv",
+        )
+    }
+
+    upload_response = requests.post(
+        f"{BACKEND_URL}/upload",
+        files=files
+    )
+
+    if upload_response.status_code != 200:
+        st.error("Unable to upload dataset.")
+        st.stop()
+
+    summary = upload_response.json()
+
+    st.header("1️⃣ Dataset Summary")
+
     st.write(f"**Rows:** {summary['rows']}")
     st.write(f"**Columns:** {summary['columns']}")
-    st.write("**Column names:**", summary["column_names"])
-    st.write("**Missing values:**", summary["missing_values"])
+    st.write("**Column Names:**", summary["column_names"])
+    st.write("**Missing Values:**", summary["missing_values"])
 
     preview_df = pd.read_csv(uploaded_file)
+
     st.dataframe(preview_df.head())
 
-    # --- Step 2: Show basic statistics ---
+    # -------------------------
+    # Statistics
+    # -------------------------
 
-    st.header("2️ Basic Statistics")
-    
-    response = requests.get(f"{BACKEND_URL}/statistics")
-    
-    st.write("Status Code:", response.status_code)
-    st.write("Response Text:", response.text)
-    
-    if response.status_code == 200:
-        stats = response.json()
-        st.write(stats)
-    else:
-        st.error("Statistics endpoint failed.")
+    st.header("2️⃣ Basic Statistics")
 
-    # --- Step 3: Ask a question ---
-    st.header("3️Ask a Question")
-    st.caption(
-        "Try: 'Which product has the highest sales?', 'What is the average sales?', "
-        "'Which city has the maximum orders?', 'Which category is most frequent?'"
+    stats_response = requests.get(
+        f"{BACKEND_URL}/statistics"
     )
-    question = st.text_input("Type your question here:")
 
-    if st.button("Get Answer") and question.strip():
-        result = requests.post(f"{BACKEND_URL}/ask", json={"question": question})
-        st.success(result.json()["answer"])
+    if stats_response.status_code == 200:
 
-    # --- Step 4: Generate a chart ---
-    st.header("4️Chart")
-    chart_type = st.radio("Choose chart type:", ["bar", "pie"], horizontal=True)
+        stats = stats_response.json()
 
-    if st.button("Generate Chart"):
-        chart_response = requests.get(f"{BACKEND_URL}/chart", params={"chart_type": chart_type})
-        st.image(chart_response.content)
+        st.json(stats)
 
-        # --- Step 5: Explain the chart ---
-        st.header("Explanation")
-        explanation = requests.get(f"{BACKEND_URL}/explain").json()
-        st.info(explanation["explanation"])
+    else:
+
+        st.error("Unable to fetch statistics.")
+
+    # -------------------------
+    # Question
+    # -------------------------
+
+    st.header("3️⃣ Ask a Question")
+
+    st.caption(
+        "Examples:\n"
+        "- Which city has the maximum orders?\n"
+        "- Which product has the highest sales?\n"
+        "- Which region has the highest sales?\n"
+        "- Which category is most frequent?"
+    )
+
+    question = st.text_input(
+        "Enter your question"
+    )
+
+    chart_type = st.radio(
+        "Chart Type",
+        ["bar", "pie"],
+        horizontal=True
+    )
+
+    if st.button("Get Answer"):
+
+        if question.strip() == "":
+            st.warning("Please enter a question.")
+            st.stop()
+
+        # -------------------------
+        # Ask Question
+        # -------------------------
+
+        answer_response = requests.post(
+            f"{BACKEND_URL}/ask",
+            json={
+                "question": question
+            }
+        )
+
+        if answer_response.status_code == 200:
+
+            answer = answer_response.json()
+
+            st.success(answer["answer"])
+
+        else:
+
+            st.error("Unable to answer question.")
+            st.stop()
+
+        # -------------------------
+        # Chart
+        # -------------------------
+
+        st.header("4️⃣ Visualization")
+
+        chart_response = requests.get(
+            f"{BACKEND_URL}/chart",
+            params={
+                "chart_type": chart_type
+            }
+        )
+
+        if chart_response.status_code == 200:
+
+            st.image(
+                chart_response.content,
+                use_container_width=True
+            )
+
+        else:
+
+            st.error("Unable to generate chart.")
+
+        # -------------------------
+        # Explanation
+        # -------------------------
+
+        st.header("5️⃣ Explanation")
+
+        explanation_response = requests.get(
+            f"{BACKEND_URL}/explain"
+        )
+
+        if explanation_response.status_code == 200:
+
+            explanation = explanation_response.json()
+
+            st.info(
+                explanation["explanation"]
+            )
+
+        else:
+
+            st.error("Unable to generate explanation.")
 
 else:
-    st.info(" Upload a CSV file to get started.")
+
+    st.info("Upload a CSV file to begin.")
