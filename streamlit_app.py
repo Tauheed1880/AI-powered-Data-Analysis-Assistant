@@ -39,9 +39,19 @@ if uploaded_file is not None:
     st.dataframe(preview_df.head())
 
     # --- Step 2: Show basic statistics ---
-    st.header("2️Basic Statistics")
-    stats = requests.get(f"{BACKEND_URL}/statistics").json()
-    st.write(stats)
+
+    st.header("2️ Basic Statistics")
+    
+    response = requests.get(f"{BACKEND_URL}/statistics")
+    
+    st.write("Status Code:", response.status_code)
+    st.write("Response Text:", response.text)
+    
+    if response.status_code == 200:
+        stats = response.json()
+        st.write(stats)
+    else:
+        st.error("Statistics endpoint failed.")
 
     # --- Step 3: Ask a question ---
     st.header("3️Ask a Question")
